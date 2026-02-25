@@ -12,6 +12,12 @@
   "type": "commonjs",
   "dependencies": {
     "file-saver": "^2.0.5",
+    "vite": "^7.3.1",
     "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.37",
+    "@types/file-saver": "^2.0.7",
+    "@types/node": "^25.3.0"
   }
 }
