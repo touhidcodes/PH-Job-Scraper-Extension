@@ -1,9 +1,124 @@
-<!DOCTYPE html>
-<html>
-  <body>
-    <button id="scrape">Scrape Jobs</button>
-    <button id="csv">Export CSV</button>
-    <button id="xls">Export Excel</button>
-    <script type="module" src="popup.js"></script>
-  </body>
-</html>
+<!-- popup.html -->
+<div class="popup-container">
+  <header>
+    <h2>Job Scraper Pro</h2>
+    <span id="siteName">Loading...</span>
+  </header>
+
+  <div class="status-container">
+    <div id="statusMsg" class="status-msg">Idle</div>
+    <div id="progressBar" class="progress-bar" style="display: none">
+      <div id="progressFill" class="progress-fill"></div>
+    </div>
+  </div>
+
+  <div class="field-options">
+    <label><input type="checkbox" id="f_title" checked /> Title</label>
+    <label><input type="checkbox" id="f_company" checked /> Company</label>
+    <label><input type="checkbox" id="f_location" checked /> Location</label>
+    <label><input type="checkbox" id="f_salary" /> Salary</label>
+    <label><input type="checkbox" id="f_type" /> Type</label>
+    <label><input type="checkbox" id="f_date" /> Date</label>
+    <label><input type="checkbox" id="f_link" checked /> Link</label>
+    <label><input type="checkbox" id="f_desc" /> Description</label>
+  </div>
+
+  <div class="actions">
+    <button id="btnScrape" class="btn btn-primary">Scrape Jobs</button>
+    <button id="btnExport" class="btn btn-success" disabled>Export</button>
+  </div>
+
+  <div id="previewTable" style="display: none">
+    <table id="previewData"></table>
+  </div>
+</div>
+
+<style>
+  .popup-container {
+    font-family: "Segoe UI", sans-serif;
+    width: 350px;
+    padding: 16px;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .status-msg {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  .status-msg.success {
+    color: #16a34a;
+  }
+  .status-msg.error {
+    color: #dc2626;
+  }
+  .progress-bar {
+    background: #e5e7eb;
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: #ef4444;
+    transition: width 0.3s ease;
+  }
+  .field-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 0;
+  }
+  .field-options label {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .actions {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0;
+  }
+  .btn {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: #3b82f6;
+    color: #fff;
+  }
+  .btn-primary:hover {
+    background: #2563eb;
+  }
+  .btn-success {
+    background: #22c55e;
+    color: #fff;
+  }
+  .btn-success:hover {
+    background: #16a34a;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  th,
+  td {
+    border: 1px solid #d1d5db;
+    padding: 4px 6px;
+    font-size: 12px;
+  }
+  th {
+    background: #f3f4f6;
+  }
+</style>
