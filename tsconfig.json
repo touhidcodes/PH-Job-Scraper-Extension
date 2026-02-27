@@ -1,17 +1,7 @@
 {
-  "compilerOptions": {
-    "target": "ES6",
-    "module": "ESNext",
-    "lib": ["DOM", "ES2020"],
-    "types": ["chrome"],
-    "outDir": "dist",
-    "strict": true,
-    "esModuleInterop": true
-  },
-  "include": [
-    "background.ts",
-    "content/**/*.ts",
-    "popup/**/*.ts",
-    "utils/**/*.ts"
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
   ]
 }
