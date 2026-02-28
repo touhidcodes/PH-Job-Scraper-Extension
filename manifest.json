@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Job Scraper Extension",
+  "version": "1.0.0",
+  "description": "Scrape job listings using a React + Vite Chrome Extension",
+  "action": {
+    "default_popup": "dist/index.html"
+  },
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": [
+    "*://*.linkedin.com/*",
+    "*://*.bdjobs.com/*",
+    "*://*.wellfound.com/*"
+  ],
+  "background": {
+    "service_worker": "dist/background.js",
+    "type": "module"
+  }
+}
