@@ -1,19 +1,38 @@
 {
   "manifest_version": 3,
-  "name": "Job Scraper Extension",
+  "name": "PH Job Scraper",
   "version": "1.0.0",
-  "description": "Scrape job listings using a React + Vite Chrome Extension",
+  "description": "Scrape job listings from LinkedIn, Wellfound, BDJobs, and other platforms. Export to Excel or CSV.",
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "host_permissions": ["https://*/*", "http://*/*"],
   "action": {
-    "default_popup": "dist/index.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
   },
-  "permissions": ["activeTab", "scripting", "storage"],
-  "host_permissions": [
-    "*://*.linkedin.com/*",
-    "*://*.bdjobs.com/*",
-    "*://*.wellfound.com/*"
-  ],
   "background": {
-    "service_worker": "dist/background.js",
+    "service_worker": "background.js",
     "type": "module"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*/*", "http://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["results.html", "assets/*", "chunks/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
