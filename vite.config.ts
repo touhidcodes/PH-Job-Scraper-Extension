@@ -1,7 +1,26 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import react from "@vitejs/plugin-react";
+import { resolve } from "path";
+import { defineConfig } from "vite";
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-})
+  build: {
+    outDir: "dist",
+    rollupOptions: {
+      input: {
+        popup: resolve(__dirname, "src/popup/main.tsx"),
+        results: resolve(__dirname, "src/results/main.tsx"),
+        content: resolve(__dirname, "src/content/content.ts"),
+        background: resolve(__dirname, "src/background.ts"),
+      },
+      output: {
+        entryFileNames: (chunkInfo) => {
+          if (chunkInfo.name === "content" || chunkInfo.name === "background") {
+            return "[name].js";
+          }
+          return "[name].js"; // optional: can keep as assets/[name]-[hash].js
+        },
+      },
+    },
+  },
+});

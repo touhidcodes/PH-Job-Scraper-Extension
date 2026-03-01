@@ -201,7 +201,8 @@ export const Popup = () => {
                 />
                 <div className="flex-1 min-w-0">
                   <p className="font-display font-semibold text-text text-[13px]">
-                    Found <span className="text-neon">{result.count} jobs</span>
+                    Found{" "}
+                    <span className="text-neon">{result.totalFound} jobs</span>
                   </p>
                   <p className="text-[11px] text-muted font-mono mt-0.5 truncate">
                     from {result.platform}

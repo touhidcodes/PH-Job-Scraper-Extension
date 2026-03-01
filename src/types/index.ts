@@ -1,29 +1,3 @@
-export interface JobListing {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  jobType?: string;
-  salary?: string;
-  deadline?: string;
-  postedDate?: string;
-  experience?: string;
-  skills?: string[];
-  url?: string;
-  platform: string;
-  scrapedAt: string;
-}
-
-export type ExportFormat = "csv" | "xlsx";
-
-export interface ScrapeResult {
-  jobs: JobListing[];
-  platform: string;
-  url: string;
-  count: number;
-  timestamp: string;
-}
-
 export interface ChromeMessage {
   type: "SCRAPE_JOBS" | "SCRAPE_RESULT" | "SCRAPE_ERROR" | "OPEN_RESULTS";
   payload?: unknown;
@@ -43,13 +17,60 @@ export interface ErrorMessage extends ChromeMessage {
   payload: { message: string };
 }
 
-export type PlatformKey =
+export interface JobListing {
+  id: string;
+  title: string;
+  company: string;
+  role: string;
+  location: string;
+  deadline: string;
+  salary: string;
+  jobType: string;
+  url: string;
+  platform: string;
+  scrapedAt: string;
+}
+
+export type Platform =
   | "linkedin"
   | "wellfound"
   | "bdjobs"
   | "indeed"
   | "glassdoor"
-  | "jobstreet"
-  | "naukri"
   | "monster"
   | "generic";
+
+export interface ScrapeResult {
+  success: boolean;
+  platform: Platform;
+  jobs: JobListing[];
+  error?: string;
+  totalFound: number;
+  scrapedAt: string;
+}
+
+export interface MessageRequest {
+  type: "SCRAPE_JOBS" | "GET_JOBS" | "CLEAR_JOBS" | "OPEN_RESULTS";
+  data?: unknown;
+}
+
+export interface MessageResponse {
+  success: boolean;
+  data?: ScrapeResult | JobListing[];
+  error?: string;
+}
+
+export type ExportFormat = "csv" | "excel";
+
+export interface ExportOptions {
+  format: ExportFormat;
+  selectedIds: Set<string>;
+  filename?: string;
+}
+
+export interface FilterState {
+  search: string;
+  platform: string;
+  location: string;
+  jobType: string;
+}

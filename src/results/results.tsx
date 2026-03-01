@@ -1,26 +1,26 @@
-import { useState, useEffect, useMemo } from "react";
 import {
+  Briefcase,
+  Building2,
+  CheckSquare,
+  ChevronDown,
+  ChevronUp,
+  Clock,
   Download,
+  ExternalLink,
   FileSpreadsheet,
   FileText,
-  CheckSquare,
-  Square,
-  Search,
   Filter,
-  Briefcase,
-  MapPin,
-  Building2,
-  Clock,
-  ExternalLink,
-  ChevronUp,
-  ChevronDown,
-  X,
   LayoutGrid,
-  Table2,
+  MapPin,
+  Search,
   SlidersHorizontal,
+  Square,
+  Table2,
+  X,
   Zap,
 } from "lucide-react";
-import type { JobListing, ExportFormat, ScrapeResult } from "../types";
+import { useEffect, useMemo, useState } from "react";
+import type { ExportFormat, JobListing, ScrapeResult } from "../types";
 import { exportJobs } from "../utils";
 
 type SortKey = keyof JobListing;
@@ -36,16 +36,6 @@ const COLUMNS: { key: keyof JobListing; label: string; width: string }[] = [
   { key: "platform", label: "Platform", width: "w-28" },
 ];
 
-const TAG_COLORS: Record<string, string> = {
-  LinkedIn: "#0A66C2",
-  Wellfound: "#ff4d00",
-  BDJobs: "#e91e63",
-  Indeed: "#003a9b",
-  Glassdoor: "#0caa41",
-};
-
-const getTagColor = (platform: string) => TAG_COLORS[platform] ?? "#6c63ff";
-
 export const Results = () => {
   const [result, setResult] = useState<ScrapeResult | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -54,7 +44,7 @@ export const Results = () => {
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [filterPlatform, setFilterPlatform] = useState<string>("All");
   const [filterType, setFilterType] = useState<string>("All");
-  const [exportFormat, setExportFormat] = useState<ExportFormat>("xlsx");
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("excel");
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
   const [showFilters, setShowFilters] = useState(false);
 
@@ -183,7 +173,7 @@ export const Results = () => {
 
           {/* Stats */}
           <div className="hidden md:flex items-center gap-3">
-            <StatBadge label="Total" value={result.count} color="accent" />
+            <StatBadge label="Total" value={result.totalFound} color="accent" />
             <StatBadge
               label="Filtered"
               value={filteredJobs.length}
@@ -195,10 +185,10 @@ export const Results = () => {
           {/* Source info */}
           <div className="flex-1 min-w-0 mx-4">
             <div className="flex items-center gap-2 text-[11px] font-mono text-muted">
-              <span className="truncate">{result.url}</span>
+              <span className="truncate">{result.platform}</span>
               <span className="text-border">·</span>
               <span className="whitespace-nowrap">
-                {new Date(result.timestamp).toLocaleString()}
+                {new Date(result.scrapedAt).toLocaleString()}
               </span>
             </div>
           </div>
@@ -251,7 +241,7 @@ export const Results = () => {
                       : "text-muted hover:text-text"
                   }`}
                 >
-                  {fmt === "xlsx" ? (
+                  {fmt === "excel" ? (
                     <FileSpreadsheet size={13} />
                   ) : (
                     <FileText size={13} />

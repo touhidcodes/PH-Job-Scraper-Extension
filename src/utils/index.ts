@@ -1,91 +1,79 @@
-import type { JobListing, ExportFormat } from "../types";
 import * as XLSX from "xlsx";
+import type { ExportFormat, JobListing } from "../types";
 
-const COLUMNS = [
-  { key: "title", label: "Job Title" },
-  { key: "company", label: "Company" },
-  { key: "location", label: "Location" },
-  { key: "jobType", label: "Job Type" },
-  { key: "salary", label: "Salary" },
-  { key: "experience", label: "Experience" },
-  { key: "deadline", label: "Deadline" },
-  { key: "postedDate", label: "Posted Date" },
-  { key: "platform", label: "Platform" },
-  { key: "url", label: "URL" },
-  { key: "scrapedAt", label: "Scraped At" },
-] as const;
+const HEADERS = [
+  "Title",
+  "Company",
+  "Role",
+  "Location",
+  "Deadline",
+  "Salary",
+  "Job Type",
+  "Platform",
+  "URL",
+  "Scraped At",
+];
 
-export const exportJobs = (
+function jobToRow(job: JobListing): string[] {
+  return [
+    job.title,
+    job.company,
+    job.role,
+    job.location,
+    job.deadline,
+    job.salary,
+    job.jobType,
+    job.platform,
+    job.url,
+    job.scrapedAt,
+  ];
+}
+
+export function exportToCSV(jobs: JobListing[], filename = "ph-jobs"): void {
+  const rows = [HEADERS, ...jobs.map(jobToRow)];
+  const csvContent = rows
+    .map((row) =>
+      row.map((cell) => `"${(cell || "").replace(/"/g, '""')}"`).join(",")
+    )
+    .join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  triggerDownload(blob, `${filename}.csv`);
+}
+
+export function exportToExcel(jobs: JobListing[], filename = "ph-jobs"): void {
+  const ws = XLSX.utils.aoa_to_sheet([HEADERS, ...jobs.map(jobToRow)]);
+
+  // Style header row
+  //   const range = XLSX.utils.decode_range(ws["!ref"] || "A1");
+  //   ws["!cols"] = HEADERS.map((h, i) => ({
+  //     wch: [30, 25, 25, 20, 15, 15, 15, 15, 50, 25][i] || 20,
+  //   }));
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Jobs");
+  XLSX.writeFile(wb, `${filename}.xlsx`);
+}
+
+export function exportJobs(
   jobs: JobListing[],
   format: ExportFormat,
   filename?: string
-): void => {
-  const name = filename || `ph-jobs-${new Date().toISOString().split("T")[0]}`;
-
-  const rows = jobs.map((job) =>
-    COLUMNS.reduce<Record<string, string>>((acc, col) => {
-      acc[col.label] = String(
-        (job as unknown as Record<string, unknown>)[col.key] ?? ""
-      );
-      return acc;
-    }, {})
-  );
-
+): void {
   if (format === "csv") {
-    exportCSV(rows, `${name}.csv`);
+    exportToCSV(jobs, filename);
   } else {
-    exportXLSX(rows, `${name}.xlsx`);
+    exportToExcel(jobs, filename);
   }
-};
+}
 
-const exportCSV = (rows: Record<string, string>[], filename: string): void => {
-  const headers = Object.keys(rows[0] || {});
-  const csvLines = [
-    headers.join(","),
-    ...rows.map((row) =>
-      headers.map((h) => `"${(row[h] ?? "").replace(/"/g, '""')}"`).join(",")
-    ),
-  ];
-  const blob = new Blob([csvLines.join("\n")], {
-    type: "text/csv;charset=utf-8;",
-  });
-  downloadBlob(blob, filename);
-};
-
-const exportXLSX = (rows: Record<string, string>[], filename: string): void => {
-  const ws = XLSX.utils.json_to_sheet(rows);
-  const wb = XLSX.utils.book_new();
-
-  // Style headers
-  const range = XLSX.utils.decode_range(ws["!ref"] ?? "A1");
-  for (let c = range.s.c; c <= range.e.c; c++) {
-    const addr = XLSX.utils.encode_cell({ r: 0, c });
-    if (!ws[addr]) continue;
-    ws[addr].s = {
-      font: { bold: true, color: { rgb: "FFFFFF" } },
-      fill: { fgColor: { rgb: "6C63FF" } },
-      alignment: { horizontal: "center" },
-    };
-  }
-
-  // Auto column widths
-  const colWidths = Object.keys(rows[0] || {}).map((key) => ({
-    wch: Math.min(
-      Math.max(key.length, ...rows.map((r) => (r[key] ?? "").length)) + 2,
-      50
-    ),
-  }));
-  ws["!cols"] = colWidths;
-
-  XLSX.utils.book_append_sheet(wb, ws, "Jobs");
-  XLSX.writeFile(wb, filename);
-};
-
-const downloadBlob = (blob: Blob, filename: string): void => {
+function triggerDownload(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
   URL.revokeObjectURL(url);
-};
+}
