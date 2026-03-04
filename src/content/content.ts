@@ -456,7 +456,11 @@ function scrapeJobs(): ScrapeResult {
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === "SCRAPE_JOBS") {
     const result = scrapeJobs();
-    sendResponse({ success: true, data: result });
+    if (result.success) {
+      sendResponse({ type: "SCRAPE_RESULT", payload: result });
+    } else {
+      sendResponse({ type: "SCRAPE_ERROR", payload: { message: result.error || "Unknown error" } });
+    }
   }
   return true;
 });
