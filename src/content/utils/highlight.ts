@@ -1,6 +1,8 @@
-let currentHighlighted: Element | null = null;
+let currentHighlighted: HTMLElement | null = null;
 
 export function highlight(el: Element) {
+  if (!(el instanceof HTMLElement)) return;
+
   if (currentHighlighted) {
     currentHighlighted.style.outline = "";
   }
