@@ -1,13 +1,13 @@
 import {
-  AlertCircle,
-  Briefcase,
-  CheckCircle2,
-  ChevronRight,
-  ExternalLink,
-  Globe,
-  Loader2,
-  Search,
-  Zap,
+    AlertCircle,
+    Briefcase,
+    CheckCircle2,
+    ChevronRight,
+    ExternalLink,
+    Globe,
+    Loader2,
+    Search,
+    Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ChromeMessage, ScrapeResult } from "../types";
@@ -98,9 +98,10 @@ export const Popup = () => {
 
   const handleViewResults = () => {
     if (!result) return;
-    chrome.runtime.sendMessage({
-      type: "OPEN_RESULTS",
-      payload: result,
+    chrome.storage.local.set({ scrapeResult: result }, () => {
+      chrome.runtime.sendMessage({
+        type: "OPEN_RESULTS",
+      });
     });
   };
 
