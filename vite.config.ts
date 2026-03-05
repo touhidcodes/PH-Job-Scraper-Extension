@@ -2,10 +2,8 @@ import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import { defineConfig } from "vite";
 
-import tailwindcss from "@tailwindcss/vite";
-
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react()],
   build: {
     outDir: "dist",
     rollupOptions: {
@@ -20,7 +18,7 @@ export default defineConfig({
           if (chunkInfo.name === "content" || chunkInfo.name === "background") {
             return "[name].js";
           }
-          return "[name].js"; // optional: can keep as assets/[name]-[hash].js
+          return "[name].js";
         },
       },
     },
