@@ -2,14 +2,16 @@ import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import { defineConfig } from "vite";
 
+import tailwindcss from "@tailwindcss/vite";
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   build: {
     outDir: "dist",
     rollupOptions: {
       input: {
-        popup: resolve(__dirname, "src/popup/main.tsx"),
-        results: resolve(__dirname, "src/results/main.tsx"),
+        popup: resolve(__dirname, "popup.html"),
+        results: resolve(__dirname, "results.html"),
         content: resolve(__dirname, "src/content/content.ts"),
         background: resolve(__dirname, "src/background.ts"),
       },
