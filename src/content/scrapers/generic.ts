@@ -1,16 +1,22 @@
 import type { JobListing } from "../../types";
 import { extractText } from "../utils/dom";
 import { highlight } from "../utils/highlight";
+import { emitScrapeProgress } from "../utils/progress";
 
 export async function scrapeGenericRealtime(): Promise<JobListing[]> {
   const jobs: JobListing[] = [];
-  const cards = document.querySelectorAll(
-    "article, .job, .job-card, [class*='job'], [itemtype*='JobPosting']"
+  const cards = Array.from(
+    document.querySelectorAll(
+      "article, .job, .job-card, [class*='job'], [itemtype*='JobPosting']"
+    )
   );
+
+  const total = cards.length;
+  emitScrapeProgress({ current: 0, total, title: "" });
 
   let index = 0;
 
-  for (const card of Array.from(cards)) {
+  for (const card of cards) {
     highlight(card);
 
     const title = extractText(card.querySelector("h1, h2, h3, a, strong"));
@@ -37,6 +43,7 @@ export async function scrapeGenericRealtime(): Promise<JobListing[]> {
       scrapedAt: new Date().toISOString(),
     });
 
+    emitScrapeProgress({ current: jobs.length, total, title });
     await new Promise((res) => setTimeout(res, 300));
   }
 

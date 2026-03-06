@@ -1,5 +1,10 @@
 export interface ChromeMessage {
-  type: "SCRAPE_JOBS" | "SCRAPE_RESULT" | "SCRAPE_ERROR" | "OPEN_RESULTS";
+  type:
+    | "SCRAPE_JOBS"
+    | "SCRAPE_RESULT"
+    | "SCRAPE_ERROR"
+    | "SCRAPE_PROGRESS"
+    | "OPEN_RESULTS";
   payload?: unknown;
 }
 

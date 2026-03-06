@@ -207,8 +207,21 @@ export const Popup = () => {
                   </div>
 
                   <span className="text-[10px] text-muted mt-1">
-                    {progress.current} / {progress.total}
+                    <CountUp
+                      end={progress.current}
+                      duration={0.35}
+                      redraw
+                      preserveValue
+                      useEasing={false}
+                    />{" "}
+                    / {progress.total}
                   </span>
+
+                  {progress.title && (
+                    <span className="text-[10px] text-muted mt-0.5 truncate max-w-full">
+                      {progress.title}
+                    </span>
+                  )}
                 </>
               )}
             </>
