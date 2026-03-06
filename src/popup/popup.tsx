@@ -21,6 +21,10 @@ interface ScrapeProgress {
   title: string;
 }
 
+interface ScrapeProgressMessage {
+  type: "SCRAPE_PROGRESS";
+  payload: ScrapeProgress;
+}
 interface ScrapeResult {
   success: boolean;
   totalFound: number;
@@ -65,7 +69,7 @@ export const Popup = () => {
   /* ---------------------- Listen Progress ---------------------- */
 
   useEffect(() => {
-    const listener = (msg: any) => {
+    const listener = (msg: ScrapeProgressMessage) => {
       if (msg.type === "SCRAPE_PROGRESS") {
         setProgress(msg.payload);
       }
@@ -80,13 +84,55 @@ export const Popup = () => {
 
   const detectedPlatform =
     SUPPORTED_PLATFORMS.find(
-      (p) => p.pattern !== "*" && currentUrl.includes(p.pattern)
+      (p) => p.pattern !== "*" && currentUrl.includes(p.pattern),
     ) || (currentUrl ? SUPPORTED_PLATFORMS[5] : null);
 
   /* ---------------------- Start Scraping ---------------------- */
 
+  const getActiveTab = async () => {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    return tabs[0] ?? null;
+  };
+
+  const sendScrapeCommand = async (tabId: number) => {
+    try {
+      return await chrome.tabs.sendMessage(tabId, { type: "SCRAPE_JOBS" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const missingReceiver =
+        message.includes("Could not establish connection") ||
+        message.includes("Receiving end does not exist");
+
+      if (!missingReceiver) throw error;
+
+      await chrome.scripting.executeScript({
+        target: { tabId },
+        files: ["content.js"],
+      });
+
+      return chrome.tabs.sendMessage(tabId, { type: "SCRAPE_JOBS" });
+    }
+  };
+
   const handleScrape = async () => {
-    if (!currentTab?.id) return;
+    const tab = (await getActiveTab()) ?? currentTab;
+
+    if (!tab?.id) {
+      setError("No active tab found.");
+      setStatus("error");
+      return;
+    }
+
+    const canScrapeTab =
+      tab.url?.startsWith("http://") || tab.url?.startsWith("https://");
+    if (!canScrapeTab) {
+      setError("Open a job site tab (http/https) and try again.");
+      setStatus("error");
+      return;
+    }
+
+    setCurrentTab(tab);
+    setCurrentUrl(tab.url || "");
 
     setStatus("scraping");
     setError("");
@@ -94,9 +140,7 @@ export const Popup = () => {
     setProgress({ current: 0, total: 0, title: "" });
 
     try {
-      const response = await chrome.tabs.sendMessage(currentTab.id, {
-        type: "SCRAPE_JOBS",
-      });
+      const response = await sendScrapeCommand(tab.id);
 
       if (response?.success) {
         setResult(response);
@@ -105,8 +149,16 @@ export const Popup = () => {
         setError(response?.error || "Scraping failed");
         setStatus("error");
       }
-    } catch {
-      setError("Cannot connect to page. Try refreshing the tab.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      const blockedPage =
+        message.includes("Cannot access") || message.includes("chrome://");
+
+      setError(
+        blockedPage
+          ? "This page is restricted. Open a normal job site tab and try again."
+          : "Cannot connect to page. Try refreshing the tab.",
+      );
       setStatus("error");
     }
   };
@@ -124,7 +176,7 @@ export const Popup = () => {
   /* ---------------------- UI ---------------------- */
 
   return (
-    <div className="w-[380px] min-h-[520px] bg-obsidian text-text relative overflow-hidden flex flex-col">
+    <div className="w-95 min-h-130 bg-obsidian text-text relative overflow-hidden flex flex-col">
       {/* background glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-56 h-56 bg-accent/20 rounded-full blur-3xl" />
       <div className="absolute bottom-0 right-0 w-44 h-44 bg-neonBlue/20 rounded-full blur-3xl" />
@@ -133,8 +185,8 @@ export const Popup = () => {
 
       <header className="px-5 pt-5 pb-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent to-accentBright flex items-center justify-center">
-            <Briefcase size={16} className="text-white" />
+          <div className="w-9 h-9 rounded-xl bg-linear-to-br from-accent to-accentBright flex items-center justify-center">
+            <Briefcase size={16} className="text-black" />
           </div>
 
           <div>
@@ -187,7 +239,7 @@ export const Popup = () => {
         <button
           onClick={handleScrape}
           disabled={status === "scraping"}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-accent to-accentBright text-white flex flex-col items-center justify-center gap-1 hover:scale-[1.02] transition"
+          className="w-full py-4 rounded-2xl bg-linear-to-r from-accent to-accentBright text-black flex flex-col items-center justify-center gap-1 hover:scale-[1.02] transition"
         >
           {status === "scraping" ? (
             <>
@@ -199,7 +251,7 @@ export const Popup = () => {
                 <>
                   <div className="w-full h-1.5 bg-border rounded-full mt-2 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-accent to-accentBright transition-all"
+                      className="h-full bg-linear-to-r from-accent to-accentBright transition-all"
                       style={{
                         width: `${(progress.current / progress.total) * 100}%`,
                       }}
@@ -226,10 +278,10 @@ export const Popup = () => {
               )}
             </>
           ) : (
-            <>
+            <div className="flex items-center justify-center">
               <Zap size={16} />
-              <span className="text-[13px]">Extract Jobs</span>
-            </>
+              <span className="text-[13px] ml-3">Extract Jobs</span>
+            </div>
           )}
         </button>
       </div>
