@@ -85,7 +85,8 @@ export async function scrapeLinkedInRealtime(): Promise<JobListing[]> {
       emitScrapeProgress({ 
         current: jobs.length, 
         total: Math.max(jobs.length, cards.length), 
-        title: `${company}: ${title}` 
+        title: `${company}: ${title}`,
+        scrollPercent: (window.scrollY + window.innerHeight) / document.body.scrollHeight * 100
       });
 
       await new Promise((res) => setTimeout(res, 200));

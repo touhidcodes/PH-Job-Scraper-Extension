@@ -22,6 +22,7 @@ interface ScrapeProgress {
   current: number;
   total: number;
   title: string;
+  scrollPercent?: number;
 }
 
 interface ScrapeResult {
@@ -109,7 +110,7 @@ export const Popup = () => {
           target: { tabId: tab.id },
           files: ["content.js"],
         });
-        await new Promise(r => setTimeout(r, 450));
+        await new Promise(r => setTimeout(r, 600));
       } catch (e) {
         console.warn("Script status:", e);
       }
@@ -242,31 +243,26 @@ export const Popup = () => {
             <div className="space-y-10 py-4 animate-in fade-in slide-in-from-bottom-5 duration-700">
               <div className="flex flex-col items-center gap-8">
                 <div className="relative">
-                   <div className={`w-28 h-28 rounded-full border-[7px] ${isDark ? "border-white/5" : "border-neutral-100"} shadow-inner shadow-black/20`} />
-                   <div className={`absolute inset-0 w-28 h-28 rounded-full border-[7px] border-transparent border-t-ph-purple border-r-ph-orange animate-spin`} />
-                   <div className={`absolute inset-0 flex items-center justify-center font-[900] text-lg tracking-tighter ${isDark ? 'text-white' : 'text-purple-900'}`}>
-                     <CountUp end={progress.total > 0 ? (progress.current / progress.total) * 100 : 8} duration={1} />%
+                   <div className={`w-32 h-32 rounded-full border-[7px] ${isDark ? "border-white/5" : "border-neutral-100"} shadow-inner shadow-black/20 flex flex-col items-center justify-center`} >
+                      <span className={`text-4xl font-[900] tracking-tighter ${isDark ? 'text-white' : 'text-purple-950'}`}>
+                        <CountUp end={progress.current} duration={0.5} />
+                      </span>
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-ph-purple/60' : 'text-purple-600'}`}>JOBS FOUND</span>
+                   </div>
+                   <div className={`absolute inset-0 w-32 h-32 rounded-full border-[7px] border-transparent border-t-ph-purple border-r-ph-orange animate-spin`} />
+                   
+                   {/* Scroll Percentage Indicator */}
+                   <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-ph-purple text-white text-[10px] font-black shadow-lg shadow-ph-purple/30 z-20">
+                     {Math.round(progress.scrollPercent || 0)}% SCROLLED
                    </div>
                 </div>
                 <div className="text-center space-y-2">
-                  <p className="font-[900] text-sm bg-gradient-to-r from-ph-purple to-ph-orange bg-clip-text text-transparent uppercase tracking-[0.2em] m-0">Synchronizing Data</p>
+                  <p className="font-[900] text-sm bg-gradient-to-r from-ph-purple to-ph-orange bg-clip-text text-transparent uppercase tracking-[0.2em] m-0">Synchronizing Signal</p>
                   <p className={`text-[10px] font-mono font-[800] opacity-60 ${colors.text}`}>PROTOCOL ALPHA-9 ACTIVE</p>
                 </div>
               </div>
 
               <div className="space-y-4 px-3">
-                <div className="flex justify-between items-end">
-                   <span className="text-[10px] font-black text-ph-purple uppercase tracking-widest">Entry Count</span>
-                   <span className={`text-[12px] font-mono font-black ${isDark ? 'text-white' : 'text-black'}`}>
-                     <CountUp end={progress.current} duration={0.5} /> / {progress.total || "???"}
-                   </span>
-                </div>
-                <div className={`h-3 w-full ${isDark ? "bg-white/5" : "bg-neutral-200"} rounded-full border-2 ${isDark ? 'border-white/5' : 'border-neutral-100'} overflow-hidden`}>
-                  <div 
-                    className="h-full ph-gradient rounded-full shadow-[0_0_20px_rgba(195,61,239,0.6)] transition-all duration-1000 ease-out"
-                    style={{ width: `${progress.total > 0 ? (progress.current / progress.total) * 100 : 15}%` }}
-                  />
-                </div>
                 {progress.title && (
                    <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${colors.card} animate-in slide-in-from-bottom-2 duration-500`}>
                      <Search size={14} className="text-ph-purple shrink-0 animate-pulse" />

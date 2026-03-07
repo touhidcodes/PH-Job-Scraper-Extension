@@ -59,7 +59,8 @@ export async function scrapeIndeedRealtime(): Promise<JobListing[]> {
     emitScrapeProgress({ 
       current: jobs.length, 
       total: cards.length, 
-      title: `${company}: ${title}` 
+      title: `${company}: ${title}`,
+      scrollPercent: (window.scrollY + window.innerHeight) / document.body.scrollHeight * 100
     });
 
     await new Promise((res) => setTimeout(res, 300));

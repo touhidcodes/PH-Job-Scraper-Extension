@@ -28,9 +28,9 @@ const registerScraper = () => {
         const platform = detectPlatform();
         let jobs = [];
 
-        // Add a small scroll to ensure content is triggered to load
-        console.log("Nexen Scraper: Triggering initial lazy load (v1.5)...");
-        await autoScroll(600, 300, 3); // 3 steps of 600px each
+        // Increased initial scroll to trigger more lazy-loaded portals
+        console.log("Nexen Scraper: Triggering deep lazy load (v1.6)...");
+        await autoScroll(800, 400, 4); // 4 steps of 800px each
 
         console.log(`Nexen Scraper: Starting realtime scrape for ${platform}...`);
         
