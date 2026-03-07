@@ -1,49 +1,97 @@
 import type { JobListing } from "../../types";
 import { extractText } from "../utils/dom";
-import { highlight } from "../utils/highlight";
+import { clearHighlight, highlight } from "../utils/highlight";
 import { emitScrapeProgress } from "../utils/progress";
 
 export async function scrapeLinkedInRealtime(): Promise<JobListing[]> {
   const jobs: JobListing[] = [];
-  const cards = Array.from(
-    document.querySelectorAll(
-      ".jobs-search-results__list-item, .job-card-container"
-    )
-  );
+  const seenIds = new Set<string>();
+  
+  // LinkedIn uses lazy loading heavily, so we need to scroll to find them
+  const TIMEOUT = 1000;
+  const MAX_JOBS = 100;
 
-  const total = cards.length;
-  emitScrapeProgress({ current: 0, total, title: "" });
+  console.log("Nexen Scraper: Starting LinkedIn deep scan...");
 
-  let index = 0;
+  // Primary selector for search result cards
+  const cardSelectors = [
+    ".jobs-search-results__list-item",
+    ".job-card-container",
+    ".base-card",
+    "[data-job-id]"
+  ].join(",");
 
-  for (const card of cards) {
-    highlight(card);
+  let previousCardCount = 0;
+  let scrollAttempts = 0;
 
-    const title = extractText(card.querySelector(".job-card-list__title"));
-    if (!title) continue;
+  while (jobs.length < MAX_JOBS && scrollAttempts < 5) {
+    const cards = Array.from(document.querySelectorAll(cardSelectors));
 
-    jobs.push({
-      id: `linkedin-${Date.now()}-${index++}`,
-      title,
-      company: extractText(
-        card.querySelector(".job-card-container__company-name")
-      ),
-      role: title,
-      location: extractText(
-        card.querySelector(".job-card-container__metadata-item")
-      ),
-      deadline: "N/A",
-      salary: "N/A",
-      jobType: "N/A",
-      url:
-        (card.querySelector("a") as HTMLAnchorElement)?.href ?? location.href,
-      platform: "LinkedIn",
-      scrapedAt: new Date().toISOString(),
-    });
+    if (cards.length === previousCardCount) {
+      scrollAttempts++;
+      // Scroll list container if it exists, otherwise window
+      const listContainer = document.querySelector(".jobs-search-results-list");
+      if (listContainer) {
+        listContainer.scrollBy(0, 800);
+      } else {
+        window.scrollBy(0, 800);
+      }
+      await new Promise(r => setTimeout(r, TIMEOUT));
+    } else {
+      scrollAttempts = 0;
+    }
+    
+    previousCardCount = cards.length;
 
-    emitScrapeProgress({ current: jobs.length, total, title });
-    await new Promise((res) => setTimeout(res, 400));
+    for (const card of cards) {
+      if (jobs.length >= MAX_JOBS) break;
+
+      // Fingerprint to avoid duplicates
+      const jobId = card.getAttribute("data-job-id") || 
+                    card.getAttribute("data-entity-urn")?.split(":").pop() || 
+                    "";
+      
+      const titleEl = card.querySelector(".job-card-list__title, .base-search-card__title, h2, h3");
+      const title = extractText(titleEl);
+      const companyEl = card.querySelector(".job-card-container__company-name, .base-search-card__subtitle, [class*='company']");
+      const company = extractText(companyEl);
+
+      if (!title || !company) continue;
+      
+      const fingerprint = jobId || `${title}-${company}`.toLowerCase();
+      if (seenIds.has(fingerprint)) continue;
+      seenIds.add(fingerprint);
+
+      highlight(card);
+
+      const locationEl = card.querySelector(".job-card-container__metadata-item, .job-search-card__location, [class*='location']");
+      const salaryEl = card.querySelector(".job-card-list__footer-item, [class*='salary']");
+      const urlEl = card.querySelector("a.job-card-list__title, a.base-card__full-link, a") as HTMLAnchorElement;
+
+      jobs.push({
+        id: `linkedin-${Date.now()}-${jobs.length}`,
+        title,
+        company,
+        role: title,
+        location: extractText(locationEl) || "Not listed",
+        deadline: "N/A",
+        salary: extractText(salaryEl) || "Not listed",
+        jobType: "N/A",
+        url: urlEl?.href || location.href,
+        platform: "LinkedIn",
+        scrapedAt: new Date().toISOString(),
+      });
+
+      emitScrapeProgress({ 
+        current: jobs.length, 
+        total: Math.max(jobs.length, cards.length), 
+        title: `${company}: ${title}` 
+      });
+
+      await new Promise((res) => setTimeout(res, 200));
+    }
   }
 
+  clearHighlight();
   return jobs;
 }

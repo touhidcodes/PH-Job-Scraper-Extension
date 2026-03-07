@@ -1,3 +1,36 @@
 @import url("https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
 
 @import "tailwindcss";
+
+@theme {
+  --color-ph-purple: #c33def;
+  --color-ph-orange: #ff930f;
+  --color-accent: #c33def;
+  --color-accentBright: #ff930f;
+  --color-dark-bg: #14081a;
+  --color-light-bg: #fdfcff;
+  --color-obsidian: #0d0411;
+  --color-midnight: #1a0b22;
+  
+  --font-sans: "DM Sans", sans-serif;
+}
+
+@layer utilities {
+  .ph-gradient {
+    background: linear-gradient(135deg, #c33def 0%, #ff930f 100%);
+  }
+  
+  .ph-grid {
+    background-image: 
+      linear-gradient(rgba(195, 61, 239, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(195, 61, 239, 0.05) 1px, transparent 1px);
+    background-size: 30px 30px;
+  }
+
+  .ph-grid-light {
+    background-image: 
+      linear-gradient(rgba(195, 61, 239, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(195, 61, 239, 0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
+  }
+}
