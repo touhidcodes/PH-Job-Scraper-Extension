@@ -7,18 +7,21 @@ import { scrapeGlassdoorRealtime } from "./scrapers/glassdoor";
 import { scrapeIndeedRealtime } from "./scrapers/indeed";
 import { scrapeLinkedInRealtime } from "./scrapers/linkedin";
 import { scrapeWellfoundRealtime } from "./scrapers/wellfound";
+import { clearHighlight } from "./utils/highlight";
 
-// Prevent double injection and handle extension reload context invalidation
-if (!document.body?.dataset?.phScraperInjected) {
-  if (document.body) {
-    document.body.dataset.phScraperInjected = "true";
-  }
-
+// Helper to register listener
+const registerScraper = () => {
+  // Use a window property to avoid double-registration in the SAME script execution
+  // but we allow multiple registrations across different executions (like after extension reload)
+  // because the old listeners will have an invalid chrome.runtime.id.
+  
   chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
     // Check if the extension context is still valid
     if (!chrome.runtime?.id) return;
     
     if (msg.type !== "SCRAPE_JOBS") return false;
+
+    console.log("PH Scraper: Received SCRAPE_JOBS command");
 
     // Run async logic in IIFE so we can return true synchronously
     (async () => {
@@ -26,8 +29,9 @@ if (!document.body?.dataset?.phScraperInjected) {
         const platform = detectPlatform();
         let jobs = [];
 
-        // Scroll first
-        await autoScroll();
+        // Scroll a bit to trigger lazy loading if needed, but not necessarily the whole page
+        // as we now have auto-scroll during highlighting
+        await autoScroll(800, 400);
 
         switch (platform) {
           case "linkedin":
@@ -48,6 +52,11 @@ if (!document.body?.dataset?.phScraperInjected) {
           default:
             jobs = await scrapeGenericRealtime();
         }
+
+        // Clear highlight when done
+        clearHighlight();
+
+        console.log(`PH Scraper: Completed scraping ${jobs.length} jobs`);
 
         // Check context again before sending response
         if (chrome.runtime?.id) {
@@ -73,4 +82,7 @@ if (!document.body?.dataset?.phScraperInjected) {
     // Required to keep the message channel open for the async response
     return true;
   });
-}
+};
+
+// Initialize
+registerScraper();

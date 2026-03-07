@@ -115,6 +115,8 @@ export const Popup = () => {
   };
 
   const handleScrape = async () => {
+      console.log("Extract button clicked");
+
     const tab = (await getActiveTab()) ?? currentTab;
 
     if (!tab?.id) {
